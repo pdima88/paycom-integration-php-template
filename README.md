@@ -6,37 +6,17 @@
 - [`PDO`](http://php.net/manual/en/book.pdo.php) extension
 - [`Composer`](https://getcomposer.org/download/) dependency manager
 
-## Installation via Composer
+## Installation
 
-Change current directory to your project folder and install package:
-```
-cd my-shop-project
-composer create-project paycom/integration-template
-```
-
-## Installation via Git
-```
-git clone https://github.com/umidjons/paycom-integration-php-template.git
-cd paycom-integration-php-template
-composer dumpautoload
+```bash
+$ git clone https://github.com/umidjons/paycom-integration-php-template.git
+$ cd paycom-integration-php-template
+$ composer dumpautoload
+$ cp paycom.config.sample.php paycom.config.php
 ```
 
-From now you can use classes from package as following:
-```php
-<?php
-// File `my-shop-project/api/index.php`
-require_once 'vendor/autoload.php';
+Edit `paycom.config.php` and set your real settings there. Then go to [Merchant Cabinet](https://merchant.paycom.uz) and in merchant settings set `endpoint` of your API. Assuming your domain is `https://myshop.uz`, `endpoint` of your API will be `https://myshop.uz/index.php`.
 
-use Paycom\Application;
+Feel free to use our [Test Cabinet](http://merchant.test.paycom.uz).
 
-// load configuration
-$paycomConfig = require_once 'paycom.config.php';
-
-$application = new Application($paycomConfig);
-$application->run();
-```
-
-Make copy of `paycom.config.sample.php` as `paycom.config.php` and set your real settings there.
-
-Assuming your domain as `https://myshop.uz`,
-now you can set entry point URL to handle requests from Paycom as `https://myshop.uz/api/index.php`.
+PRs are welcome. GL&HF!
