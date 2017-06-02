@@ -15,7 +15,7 @@ $ composer dumpautoload
 $ cp paycom.config.sample.php paycom.config.php
 ```
 
-Edit `paycom.config.php` and set your real settings there. Then go to [Merchant Cabinet](https://merchant.paycom.uz) and in merchant settings set `endpoint` of your API. Assuming your domain is `https://myshop.uz`, `endpoint` of your API will be `https://myshop.uz/index.php`.
+Edit `paycom.config.php` and set your real settings there. Then go to [Merchant Cabinet](https://merchant.paycom.uz) and in merchant settings set `endpoint` of your API. Assuming your domain is `https://example.com`, `endpoint` of your API will be `https://example.com/index.php`.
 
 Feel free to use our [Test Cabinet](http://merchant.test.paycom.uz).
 
