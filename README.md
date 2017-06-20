@@ -21,7 +21,7 @@ Edit `paycom.config.php` and set your real settings there.
 - For tests use our [Test Merchant Cabinet](http://merchant.test.paycom.uz)
 - For production use [Merchant Cabinet](https://merchant.paycom.uz)
 
-In merchant cabinet in cashbox settings set `endpoint` of your API. Assuming your domain is `https://example.com` and script `paycom.php` located in root directory of your web site then `endpoint` of your API will be `https://example.com/paycom.php`.
+In merchant cabinet in cashbox settings set `endpoint` of your API. Assuming your domain is `https://example.com` and script `paycom.php` located in root directory of your web site, then `endpoint` of your API will be `https://example.com/paycom.php`.
 
 ## Setup database
 
@@ -44,9 +44,9 @@ CREATE TABLE `transactions` (
 
     PRIMARY KEY (`id`)
 )
-    COLLATE='utf8_unicode_ci'
-    ENGINE=InnoDB
-    AUTO_INCREMENT=1;
+COLLATE='utf8_unicode_ci'
+ENGINE=InnoDB
+AUTO_INCREMENT=1;
 ```
 ___
 PRs are welcome. GL&HF!
