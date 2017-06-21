@@ -49,5 +49,7 @@ COLLATE='utf8_unicode_ci'
 ENGINE=InnoDB
 AUTO_INCREMENT=1;
 ```
-___
+
+## Contributing
+
 PRs are welcome. GL&HF!
