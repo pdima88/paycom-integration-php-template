@@ -30,11 +30,11 @@ class Application
      */
     public function run()
     {
-        // authorize session
-        $this->merchant->Authorize($this->request->id);
-
-        // handle request
         try {
+            // authorize session
+            $this->merchant->Authorize($this->request->id);
+
+            // handle request
             switch ($this->request->method) {
                 case 'CheckPerformTransaction':
                     $this->CheckPerformTransaction();
