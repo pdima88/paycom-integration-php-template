@@ -11,7 +11,7 @@ class Merchant
 
         // read key from key file
         if ($this->config['keyFile']) {
-            $this->config['key'] = file_get_contents($this->config['keyFile']);
+            $this->config['key'] = trim(file_get_contents($this->config['keyFile']));
         }
     }
 
