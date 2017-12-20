@@ -19,7 +19,7 @@ class Database
         $db_options = [\PDO::ATTR_DEFAULT_FETCH_MODE => \PDO::FETCH_ASSOC];
 
         $db = new \PDO(
-            'mysql:dbname=' . $this->config['db']['database'] . ';host=localhost;charset=utf8',
+            'mysql:dbname=' . $this->config['db']['database'] . ';host=' . $this->config['db']['host'] . ';charset=utf8',
             $this->config['db']['username'],
             $this->config['db']['password'],
             $db_options
