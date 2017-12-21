@@ -110,6 +110,95 @@ In the merchant cabinet on the cashbox settings point the `endpoint` to your Mer
 Assuming your domain is `https://example.com`, and your `Merchant API` implementation is located under `api/` folder 
 or a URL rewriting is configured to access API by `https://example.com/api/`,  then `endpoint` should be set as `https://example.com/api/index.php`.
 
+## Set Up and Run Merchant API implementation on Docker Containers
+
+Here we will build docker images for Paycom Merchant API and optionally for MySQL.
+
+`Dockerfile` contains statements to build an image for Merchant API.
+This image is based on PHP v7 and Apache 2.4, but also includes PDO and PDO_MYSQL extensions.
+There are also statements to install the latest version of Composer.
+
+If you need more info about base images and docker commands look at the following links:
+
+- [Official php:7-apache docker image](https://hub.docker.com/_/php/);
+- [Official mysql docker image](https://hub.docker.com/_/mysql/);
+- [Dockerfile reference](https://docs.docker.com/engine/reference/builder/);
+- [Docker Compose file reference](https://docs.docker.com/compose/compose-file/);
+- [Docker Compose CLI reference](https://docs.docker.com/compose/reference/overview/);
+- [Docker CLI reference](https://docs.docker.com/engine/reference/commandline/cli/).
+
+Build the images:
+
+```bash
+docker-compose build
+```
+
+Run the containers:
+
+```bash
+docker-compose up -d
+```
+
+Show the logs:
+
+```bash
+docker-compose logs -f
+```
+
+Stop the containers:
+
+```bash
+docker-compose stop
+```
+
+Stop and remove the containers:
+
+```bash
+docker-compose down
+```
+
+Test the endpoint via cURL command:
+
+```bash
+curl -X POST \
+  http://localhost:8888/ \
+  -H 'Authorization: Basic UGF5Y29tOktleUZyb21NZXJjaGFudENhYmluZXQ=' \
+  -H 'Cache-Control: no-cache' \
+  -H 'Content-Type: application/json' \
+  -d '{
+	"id": 1,
+    "method" : "CheckPerformTransaction",
+    "params" : {
+        "amount" : 50000,
+        "account" : {
+            "phone" : "901304050"
+        }
+    }
+}'
+```
+
+`Authorization` header contains `Base64` decoded `Paycom:KEY_FROM_CABINET` login and password.
+
+For testing purposes you can quickly Base64 decode the login & password with [this online tool](https://www.base64encode.org/).
+
+You should get something like the following response (below the response is formatted, but you will get raw responses):
+
+```bash
+{
+    "id": 1,
+    "result": null,
+    "error": {
+        "code": -31050,
+        "message": {
+            "ru": "Неверный код заказа.",
+            "uz": "Harid kodida xatolik.",
+            "en": "Incorrect order code."
+        },
+        "data": "order_id"
+    }
+}
+```
+
 ## Contributing
 
 PRs are welcome. GL&HF!
