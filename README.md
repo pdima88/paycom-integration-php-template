@@ -3,6 +3,17 @@
 This is not a complete implementation of the Marchant API, instead a basic template.
 One **MUST** implement all the `todo:` entries found in the source files according his/her own requirements.
 
+## Table of Content
+
+- [Prerequisites](#prerequisites)
+- [Installation](#tnstallation)
+- [Transactions table](#transactions-table)
+- [Additional resources](#additional-resources)
+- [Endpoint](#endpoint)
+- [File Structure](#file-structure)
+- [Set Up and Run Merchant API implementation on Docker Containers](#set-up-and-run-merchant-api-implementation-on-docker-containers)
+- [Contributing](#contributing)
+
 ## Prerequisites
 
 - `PHP 5.4` or greater
