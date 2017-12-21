@@ -110,6 +110,34 @@ In the merchant cabinet on the cashbox settings point the `endpoint` to your Mer
 Assuming your domain is `https://example.com`, and your `Merchant API` implementation is located under `api/` folder 
 or a URL rewriting is configured to access API by `https://example.com/api/`,  then `endpoint` should be set as `https://example.com/api/index.php`.
 
+## File Structure
+
+Following is the brief description of the files:
+
+| File/Folder                | Description                                                                               |
+| -------------------------- | ----------------------------------------------------------------------------------------- |
+| `index.php`                | An entry script, that loads configuration, initializes and runs an application instances. |
+| `paycom.config.sample.php` | Sample configuration file with fake values.                                               |
+| `paycom.config.php`        | Configuration file with actual values. Initially isn't present. Should be copied from `paycom.config.sample.php` |
+| `paycom.password`          | Default file to set the `KEY` obtained from the Merchant Cabinet. Set in the config file via `keyFile`. Remove any whitespaces and `EOL` characters before save. |
+| `functions.php`            | Contains additional functions. Right now it has only one function to retrieve headers from `$_SERVER` superglobal variable on Apache and Nginx. |
+| `Paycom/`                  | A folder, that contains all required and helper classes.                                  |
+| `Application.php`          | A main class to instantiate the new application and handle all requests.                  |
+| `Database.php`             | A class to setup the new connections to the underlying database.                          |
+| `Request.php`              | A helper class to parse request's payload.                                                |
+| `Response.php`             | A helper class to send responses to the requester.                                        |
+| `Format.php`               | A utility class to format data.                                                           |
+| `Transaction.php`          | A class to handle transaction related tasks. Contains `todo: ` items that must be implemented. |
+| `Merchant.php`             | A helper class to authorize requesters of the API.                                        |
+| `PaycomException.php`      | A custom exception class to send error responses.                                         |
+| `Order.php`                | A class to handle order/service related tasks.                                            |
+| `vendor/`                  | Auto generated with Composer folder that contains autoloader.                             |
+| `Dockerfile`               | Dockerfile to build an image with `PHP v7`, `Apache v2.4`, `Composer`.                    |
+| `docker-compose.yml`       | Compose file to easily setup & run Merchant API implementation on the docker containers.  |
+| `.gitignore`               | Git ignore file.                                                                          |
+| `composer.json`            | Config file to handle dependencies and autoloader. Read more [here](https://getcomposer.org/doc/04-schema.md) |
+| `README.md`                | Description and documentation of this template.                                           |
+
 ## Set Up and Run Merchant API implementation on Docker Containers
 
 Here we will build docker images for Paycom Merchant API and optionally for MySQL.
