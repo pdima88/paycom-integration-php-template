@@ -6,7 +6,7 @@ One **MUST** implement all the `todo:` entries found in the source files accordi
 ## Table of Content
 
 - [Prerequisites](#prerequisites)
-- [Installation](#tnstallation)
+- [Installation](#installation)
 - [Transactions table](#transactions-table)
 - [Additional resources](#additional-resources)
 - [Endpoint](#endpoint)
@@ -151,11 +151,15 @@ Following is the brief description of the files:
 
 ## Set Up and Run Merchant API implementation on Docker Containers
 
-Here we will build docker images for Paycom Merchant API and optionally for MySQL.
+In cases that there is no `PHP`/`Apache`/`Nginx`/`MySQL` on your production platforms you can easily and quickly setup and run the `Merchant API` implementation using docker containers.
 
-`Dockerfile` contains statements to build an image for Merchant API.
-This image is based on PHP v7 and Apache 2.4, but also includes PDO and PDO_MYSQL extensions.
-There are also statements to install the latest version of Composer.
+Here we will build docker images for `Paycom Merchant API` and optionally for `MySQL`.
+
+`Dockerfile` contains statements to build an image for `Merchant API`.
+This image is based on `PHP v7` and `Apache 2.4`, but also includes `PDO` and `PDO_MYSQL` extensions.
+There are also statements to install the latest version of `Composer`.
+
+By editing `docker-compose.yml` file you can adjust exposed ports, volumes.
 
 If you need more info about base images and docker commands look at the following links:
 
