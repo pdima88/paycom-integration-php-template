@@ -8,7 +8,7 @@ class Database
 
     protected static $db;
 
-    public function __construct(array $config)
+    public function __construct(array $config = null)
     {
         $this->config = $config;
     }

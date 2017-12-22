@@ -1,4 +1,5 @@
 <?php
+
 namespace Paycom;
 
 class Application
@@ -8,21 +9,16 @@ class Application
     public $response;
     public $merchant;
 
-    protected $db;
-    protected $db_conn;
-
     /**
      * Application constructor.
      * @param array $config configuration array with <em>merchant_id</em>, <em>login</em>, <em>keyFile</em> keys.
      */
     public function __construct($config)
     {
-        $this->config = $config;
-        $this->request = new Request();
+        $this->config   = $config;
+        $this->request  = new Request();
         $this->response = new Response($this->request);
         $this->merchant = new Merchant($this->config);
-        $this->db = new Database($this->config);
-        $this->db_conn = $this->db->new_connection();
     }
 
     /**
@@ -72,15 +68,15 @@ class Application
 
     private function CheckPerformTransaction()
     {
-        $order = new Order($this->request->id, $this->request->params);
+        $order = new Order($this->request->id);
         $order->find($this->request->params['account']);
 
         // validate parameters
         $order->validate($this->request->params);
 
         // todo: Check is there another active or completed transaction for this order
-        $transaction = new Transaction($this->db_conn);
-        $found = $transaction->find($this->request->params);
+        $transaction = new Transaction();
+        $found       = $transaction->find($this->request->params);
         if ($found && ($found->state == Transaction::STATE_CREATED || $found->state == Transaction::STATE_COMPLETED)) {
             $this->response->error(
                 PaycomException::ERROR_COULD_NOT_PERFORM,
@@ -96,8 +92,8 @@ class Application
     private function CheckTransaction()
     {
         // todo: Find transaction by id
-        $transaction = new Transaction($this->db_conn);
-        $found = $transaction->find($this->request->params);
+        $transaction = new Transaction();
+        $found       = $transaction->find($this->request->params);
         if (!$found) {
             $this->response->error(
                 PaycomException::ERROR_TRANSACTION_NOT_FOUND,
@@ -107,26 +103,26 @@ class Application
 
         // todo: Prepare and send found transaction
         $this->response->send([
-            'create_time' => Format::datetime2timestamp($found->create_time),
+            'create_time'  => Format::datetime2timestamp($found->create_time),
             'perform_time' => Format::datetime2timestamp($found->perform_time),
-            'cancel_time' => Format::datetime2timestamp($found->cancel_time),
-            'transaction' => $found->id,
-            'state' => $found->state,
-            'reason' => isset($found->reason) ? 1 * $found->reason : null
+            'cancel_time'  => Format::datetime2timestamp($found->cancel_time),
+            'transaction'  => $found->id,
+            'state'        => $found->state,
+            'reason'       => isset($found->reason) ? 1 * $found->reason : null,
         ]);
     }
 
     private function CreateTransaction()
     {
-        $order = new Order($this->request->id, $this->request->params);
+        $order = new Order($this->request->id);
         $order->find($this->request->params['account']);
 
         // validate parameters
         $order->validate($this->request->params);
 
         // todo: Find transaction by id
-        $transaction = new Transaction($this->db_conn);
-        $found = $transaction->find($this->request->params);
+        $transaction = new Transaction();
+        $found       = $transaction->find($this->request->params);
 
         if ($found) {
             if ($found->state != Transaction::STATE_CREATED) { // validate transaction state
@@ -144,8 +140,8 @@ class Application
                 $this->response->send([
                     'create_time' => Format::datetime2timestamp($found->create_time),
                     'transaction' => $found->id,
-                    'state' => $found->state,
-                    'receivers' => $found->receivers
+                    'state'       => $found->state,
+                    'receivers'   => $found->receivers,
                 ]);
             }
         } else { // transaction not found, create new one
@@ -165,29 +161,29 @@ class Application
 
             // create new transaction
             // keep create_time as timestamp, it is necessary in response
-            $create_time = Format::timestamp();
+            $create_time                        = Format::timestamp();
             $transaction->paycom_transaction_id = $this->request->params['id'];
-            $transaction->paycom_time = $this->request->params['time'];
-            $transaction->paycom_time_datetime = Format::timestamp2datetime($this->request->params['time']);
-            $transaction->create_time = Format::timestamp2datetime($create_time);
-            $transaction->state = Transaction::STATE_CREATED;
-            $transaction->amount = $this->request->amount;
-            $transaction->order_id = $this->request->account('order_id');
+            $transaction->paycom_time           = $this->request->params['time'];
+            $transaction->paycom_time_datetime  = Format::timestamp2datetime($this->request->params['time']);
+            $transaction->create_time           = Format::timestamp2datetime($create_time);
+            $transaction->state                 = Transaction::STATE_CREATED;
+            $transaction->amount                = $this->request->amount;
+            $transaction->order_id              = $this->request->account('order_id');
             $transaction->save(); // after save $transaction->id will be populated with the newly created transaction's id.
 
             // send response
             $this->response->send([
                 'create_time' => $create_time,
                 'transaction' => $transaction->id,
-                'state' => $transaction->state,
-                'receivers' => null
+                'state'       => $transaction->state,
+                'receivers'   => null,
             ]);
         }
     }
 
     private function PerformTransaction()
     {
-        $transaction = new Transaction($this->db_conn);
+        $transaction = new Transaction();
         // search transaction by id
         $found = $transaction->find($this->request->params);
 
@@ -207,20 +203,20 @@ class Application
                 } else { // perform active transaction
                     // todo: Mark order/service as completed
                     $params = ['order_id' => $found->order_id];
-                    $order = new Order($this->request->id);
+                    $order  = new Order($this->request->id);
                     $order->find($params);
                     $order->changeState(Order::STATE_PAY_ACCEPTED);
 
                     // todo: Mark transaction as completed
-                    $perform_time = Format::timestamp();
-                    $found->state = Transaction::STATE_COMPLETED;
+                    $perform_time        = Format::timestamp();
+                    $found->state        = Transaction::STATE_COMPLETED;
                     $found->perform_time = Format::timestamp2datetime($perform_time);
                     $found->save();
 
                     $this->response->send([
-                        'transaction' => $found->id,
+                        'transaction'  => $found->id,
                         'perform_time' => $perform_time,
-                        'state' => $found->state
+                        'state'        => $found->state,
                     ]);
                 }
                 break;
@@ -228,9 +224,9 @@ class Application
             case Transaction::STATE_COMPLETED: // handle complete transaction
                 // todo: If transaction completed, just return it
                 $this->response->send([
-                    'transaction' => $found->id,
+                    'transaction'  => $found->id,
                     'perform_time' => Format::datetime2timestamp($found->perform_time),
-                    'state' => $found->state
+                    'state'        => $found->state,
                 ]);
                 break;
 
@@ -246,7 +242,7 @@ class Application
 
     private function CancelTransaction()
     {
-        $transaction = new Transaction($this->db_conn);
+        $transaction = new Transaction();
 
         // search transaction by id
         $found = $transaction->find($this->request->params);
@@ -263,7 +259,7 @@ class Application
                 $this->response->send([
                     'transaction' => $found->id,
                     'cancel_time' => Format::datetime2timestamp($found->cancel_time),
-                    'state' => $found->state
+                    'state'       => $found->state,
                 ]);
                 break;
 
@@ -282,7 +278,7 @@ class Application
                 $this->response->send([
                     'transaction' => $found->id,
                     'cancel_time' => Format::datetime2timestamp($found->cancel_time),
-                    'state' => $found->state
+                    'state'       => $found->state,
                 ]);
                 break;
 
@@ -301,7 +297,7 @@ class Application
                     $this->response->send([
                         'transaction' => $found->id,
                         'cancel_time' => Format::datetime2timestamp($found->cancel_time),
-                        'state' => $found->state
+                        'state'       => $found->state,
                     ]);
                 } else {
                     // todo: If cancelling after performing transaction is not possible, then return error -31007
@@ -355,7 +351,7 @@ class Application
         }
 
         // get list of transactions for specified period
-        $transaction = new Transaction($this->db_conn);
+        $transaction  = new Transaction();
         $transactions = $transaction->report($this->request->params['from'], $this->request->params['to']);
 
         // send results back
