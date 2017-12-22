@@ -5,16 +5,16 @@ return [
     'merchant_id' => '69240ea9058e46ea7a1b806a',
 
     // Login is always "Paycom"
-    'login' => 'Paycom',
+    'login'       => 'Paycom',
 
     // File with cashbox key (key can be found in cashbox settings)
-    'keyFile' => 'password.paycom',
+    'keyFile'     => 'password.paycom',
 
     // Your database settings
-    'db' => [
+    'db'          => [
         'host'     => '<database host>',
         'database' => '<database name>',
         'username' => '<database username>',
-        'password' => '<database password>'
+        'password' => '<database password>',
     ],
 ];

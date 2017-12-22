@@ -1,17 +1,18 @@
 <?php
+
 namespace Paycom;
 
 class PaycomException extends \Exception
 {
-    const ERROR_INTERNAL_SYSTEM = -32400;
-    const ERROR_INSUFFICIENT_PRIVILEGE = -32504;
+    const ERROR_INTERNAL_SYSTEM         = -32400;
+    const ERROR_INSUFFICIENT_PRIVILEGE  = -32504;
     const ERROR_INVALID_JSON_RPC_OBJECT = -32600;
-    const ERROR_METHOD_NOT_FOUND = -32601;
-    const ERROR_INVALID_AMOUNT = -31001;
-    const ERROR_TRANSACTION_NOT_FOUND = -31003;
-    const ERROR_INVALID_ACCOUNT = -31050;
-    const ERROR_COULD_NOT_CANCEL = -31007;
-    const ERROR_COULD_NOT_PERFORM = -31008;
+    const ERROR_METHOD_NOT_FOUND        = -32601;
+    const ERROR_INVALID_AMOUNT          = -31001;
+    const ERROR_TRANSACTION_NOT_FOUND   = -31003;
+    const ERROR_INVALID_ACCOUNT         = -31050;
+    const ERROR_COULD_NOT_CANCEL        = -31007;
+    const ERROR_COULD_NOT_PERFORM       = -31008;
 
     public $request_id;
     public $error;
@@ -27,9 +28,9 @@ class PaycomException extends \Exception
     public function __construct($request_id, $message, $code, $data = null)
     {
         $this->request_id = $request_id;
-        $this->message = $message;
-        $this->code = $code;
-        $this->data = $data;
+        $this->message    = $message;
+        $this->code       = $code;
+        $this->data       = $data;
 
         // prepare error data
         $this->error = ['code' => $this->code];
@@ -48,9 +49,9 @@ class PaycomException extends \Exception
         header('Content-Type: application/json; charset=UTF-8');
 
         // create response
-        $response['id'] = $this->request_id;
+        $response['id']     = $this->request_id;
         $response['result'] = null;
-        $response['error'] = $this->error;
+        $response['error']  = $this->error;
 
         echo json_encode($response);
     }

@@ -20,7 +20,7 @@ class Database
         // connect to the database
         $db_options = [
             \PDO::ATTR_DEFAULT_FETCH_MODE => \PDO::FETCH_ASSOC, // fetch rows as associative array
-            \PDO::ATTR_PERSISTENT => true // use existing connection if exists
+            \PDO::ATTR_PERSISTENT         => true // use existing connection if exists
         ];
 
         $db = new \PDO(
@@ -40,7 +40,7 @@ class Database
     public static function db()
     {
         if (!self::$db) {
-            $config = require_once CONFIG_FILE;
+            $config   = require_once CONFIG_FILE;
             $instance = new self($config);
             self::$db = $instance->new_connection();
         }

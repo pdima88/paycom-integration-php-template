@@ -1,4 +1,5 @@
 <?php
+
 namespace Paycom;
 
 class Format
