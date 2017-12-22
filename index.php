@@ -8,8 +8,10 @@ require_once 'functions.php';
 
 use Paycom\Application;
 
+const CONFIG_FILE = 'paycom.config.php';
+
 // load configuration
-$paycomConfig = require_once 'paycom.config.php';
+$paycomConfig = require_once CONFIG_FILE;
 
 $application = new Application($paycomConfig);
 $application->run();

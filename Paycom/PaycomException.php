@@ -20,7 +20,7 @@ class PaycomException extends \Exception
     /**
      * PaycomException constructor.
      * @param int $request_id id of the request.
-     * @param string $message error message.
+     * @param string|array $message error message.
      * @param int $code error code.
      * @param string|null $data parameter name, that resulted to this error.
      */
