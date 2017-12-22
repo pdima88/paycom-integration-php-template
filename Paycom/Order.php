@@ -2,6 +2,22 @@
 
 namespace Paycom;
 
+/**
+ * Class Order
+ *
+ * Example MySQL table might look like to the following:
+ *
+ * CREATE TABLE orders
+ * (
+ *     id          INT AUTO_INCREMENT PRIMARY KEY,
+ *     product_ids VARCHAR(255)   NOT NULL,
+ *     amount      DECIMAL(18, 2) NOT NULL,
+ *     state       TINYINT(1)     NOT NULL,
+ *     user_id     INT            NOT NULL,
+ *     phone       VARCHAR(15)    NOT NULL
+ * ) ENGINE = InnoDB;
+ *
+ */
 class Order extends Database
 {
     /** Order is available for sell, anyone can buy it. */
@@ -132,8 +148,8 @@ class Order extends Database
         // Example implementation to load order by id
         if (isset($params['order_id'])) {
 
-            $sql = "select * from orders where id=:orderId";
-            $sth = self::db()->prepare($sql);
+            $sql        = "select * from orders where id=:orderId";
+            $sth        = self::db()->prepare($sql);
             $is_success = $sth->execute([':orderId' => $params['order_id']]);
 
             if ($is_success) {
@@ -142,12 +158,12 @@ class Order extends Database
 
                 if ($row) {
 
-                    $this->id = 1 * $row['id'];
-                    $this->amount = 1 * $row['amount'];
+                    $this->id          = 1 * $row['id'];
+                    $this->amount      = 1 * $row['amount'];
                     $this->product_ids = json_decode($row['product_ids'], true);
-                    $this->state = 1 * $row['state'];
-                    $this->user_id = 1 * $row['user_id'];
-                    $this->phone = $row['phone'];
+                    $this->state       = 1 * $row['state'];
+                    $this->user_id     = 1 * $row['user_id'];
+                    $this->phone       = $row['phone'];
 
                     return $this;
 
@@ -202,14 +218,14 @@ class Order extends Database
             // todo: Set customer ID
             // $this->user_id = 1 * SomeSessionManager::get('user_id');
 
-            $sql = "insert into orders set product_ids = :pProdIds, amount = :pAmount, state = :pState, user_id = :pUserId, phone = :pPhone";
-            $sth = $db->prepare($sql);
+            $sql        = "insert into orders set product_ids = :pProdIds, amount = :pAmount, state = :pState, user_id = :pUserId, phone = :pPhone";
+            $sth        = $db->prepare($sql);
             $is_success = $sth->execute([
                 ':pProdIds' => json_encode($this->product_ids),
-                ':pAmount' => $this->amount,
-                ':pState' => $this->state,
-                ':pUserId' => $this->user_id,
-                ':pPhone' => $this->phone
+                ':pAmount'  => $this->amount,
+                ':pState'   => $this->state,
+                ':pUserId'  => $this->user_id,
+                ':pPhone'   => $this->phone,
             ]);
 
             if ($is_success) {
@@ -217,8 +233,8 @@ class Order extends Database
             }
         } else {
 
-            $sql = "update orders set state = :pState where id = :pId";
-            $sth = $db->prepare($sql);
+            $sql        = "update orders set state = :pState where id = :pId";
+            $sth        = $db->prepare($sql);
             $is_success = $sth->execute([':pState' => $this->state, ':pId' => $this->id]);
 
         }

@@ -1,4 +1,5 @@
 <?php
+
 namespace Paycom;
 
 /**
@@ -27,22 +28,22 @@ namespace Paycom;
  *   AUTO_INCREMENT=1;
  *
  */
-class Transaction
+class Transaction extends Database
 {
     /** Transaction expiration time in milliseconds. 43 200 000 ms = 12 hours. */
     const TIMEOUT = 43200000;
 
-    const STATE_CREATED = 1;
-    const STATE_COMPLETED = 2;
-    const STATE_CANCELLED = -1;
+    const STATE_CREATED                  = 1;
+    const STATE_COMPLETED                = 2;
+    const STATE_CANCELLED                = -1;
     const STATE_CANCELLED_AFTER_COMPLETE = -2;
 
-    const REASON_RECEIVERS_NOT_FOUND = 1;
+    const REASON_RECEIVERS_NOT_FOUND         = 1;
     const REASON_PROCESSING_EXECUTION_FAILED = 2;
-    const REASON_EXECUTION_FAILED = 3;
-    const REASON_CANCELLED_BY_TIMEOUT = 4;
-    const REASON_FUND_RETURNED = 5;
-    const REASON_UNKNOWN = 10;
+    const REASON_EXECUTION_FAILED            = 3;
+    const REASON_CANCELLED_BY_TIMEOUT        = 4;
+    const REASON_FUND_RETURNED               = 5;
+    const REASON_UNKNOWN                     = 10;
 
     /** @var string Paycom transaction id. */
     public $paycom_transaction_id;
@@ -84,21 +85,87 @@ class Transaction
     /** @var string Code to identify the order or service for pay. */
     public $order_id;
 
-    private $db_conn;
-
-    public function __construct(\PDO $db_conn)
-    {
-        $this->db_conn = $db_conn;
-    }
-
     /**
      * Saves current transaction instance in a data store.
-     * @return void
+     * @return bool true - on success
      */
     public function save()
     {
         // todo: Implement creating/updating transaction into data store
         // todo: Populate $id property with newly created transaction id
+
+        // Example implementation
+
+        $db = self::db();
+
+        if (!$this->id) {
+
+            // Create a new transaction
+
+            $this->create_time = Format::timestamp2datetime(Format::timestamp());
+            $sql               = "INSERT INTO transactions SET 
+                                    paycom_transaction_id = :pPaycomTxId,
+                                    paycom_time = :pPaycomTime,
+                                    paycom_time_datetime = :pPaycomTimeStr,
+                                    create_time = :pCreateTime,
+                                    amount = :pAmount,
+                                    state = :pState,
+                                    receivers = :pReceivers,
+                                    order_id = :pOrderId";
+
+            $sth = $db->prepare($sql);
+
+            $is_success = $sth->execute([
+                ':pPaycomTxId'    => $this->paycom_transaction_id,
+                ':pPaycomTime'    => $this->paycom_time,
+                ':pPaycomTimeStr' => $this->paycom_time_datetime,
+                ':pCreateTime'    => $this->create_time,
+                ':pAmount'        => 1 * $this->amount,
+                ':pState'         => $this->state,
+                ':pReceivers'     => $this->receivers ? json_encode($this->receivers, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) : null,
+                ':pOrderId'       => 1 * $this->order_id,
+            ]);
+
+            if ($is_success) {
+                // set the newly inserted transaction id
+                $this->id = $db->lastInsertId();
+            }
+        } else {
+
+            // Update an existing transaction by id
+
+            $sql = "UPDATE transactions SET
+                    perform_time = :pPerformTime,
+                    cancel_time = :pCancelTime,
+                    state = :pState,
+                    reason = :pReason";
+
+            $params = [];
+
+            if ($this->amount) {
+                $sql                .= ", amount = :pAmount";
+                $params[':pAmount'] = 1 * $this->amount;
+            }
+
+            $sql .= " where paycom_transaction_id = :pPaycomTxId and id=:pId";
+
+            $sth = $db->prepare($sql);
+
+            $perform_time = $this->perform_time ? $this->perform_time : null;
+            $cancel_time  = $this->cancel_time ? $this->cancel_time : null;
+            $reason       = $this->reason ? 1 * $this->reason : null;
+
+            $params[':pPerformTime'] = $perform_time;
+            $params[':pCancelTime']  = $cancel_time;
+            $params[':pState']       = 1 * $this->state;
+            $params[':pReason']      = $reason;
+            $params[':pPaycomTxId']  = $this->paycom_transaction_id;
+            $params[':pId']          = $this->id;
+
+            $is_success = $sth->execute($params);
+        }
+
+        return $is_success;
     }
 
     /**
@@ -114,17 +181,20 @@ class Transaction
         $this->cancel_time = Format::timestamp2datetime(Format::timestamp());
 
         // todo: Change $state to cancelled (-1 or -2) according to the current state
-        // Scenario: CreateTransaction -> CancelTransaction
-        $this->state = self::STATE_CANCELLED;
-        // Scenario: CreateTransaction -> PerformTransaction -> CancelTransaction
+
         if ($this->state == self::STATE_COMPLETED) {
+            // Scenario: CreateTransaction -> PerformTransaction -> CancelTransaction
             $this->state = self::STATE_CANCELLED_AFTER_COMPLETE;
+        } else {
+            // Scenario: CreateTransaction -> CancelTransaction
+            $this->state = self::STATE_CANCELLED;
         }
 
         // set reason
         $this->reason = $reason;
 
         // todo: Update transaction on data store
+        $this->save();
     }
 
     /**
@@ -142,46 +212,51 @@ class Transaction
      * Find transaction by given parameters.
      * @param mixed $params parameters
      * @return Transaction|Transaction[]
+     * @throws PaycomException invalid parameters specified
      */
     public function find($params)
     {
-        $is_success = false;
-        $db_stmt = null;
+        $db = self::db();
 
         // todo: Implement searching transaction by id, populate current instance with data and return it
         if (isset($params['id'])) {
-            $sql = 'select * from transactions where paycom_transaction_id=:trx_id';
-            $db_stmt = $this->db_conn->prepare($sql);
-            $is_success = $db_stmt->execute([':trx_id' => $params['id']]);
+            $sql        = "SELECT * FROM transactions WHERE paycom_transaction_id = :pPaycomTxId";
+            $sth        = $db->prepare($sql);
+            $is_success = $sth->execute([':pPaycomTxId' => $params['id']]);
+        } elseif (isset($params['account'], $params['account']['order_id'])) {
+            // todo: Implement searching transactions by given parameters and return the list of transactions
+            // search by order id active or completed transaction
+            $sql        = "SELECT * FROM transactions WHERE state IN (1, 2) AND order_id = :pOrderId";
+            $sth        = $db->prepare($sql);
+            $is_success = $sth->execute([':pOrderId' => $params['account']['order_id']]);
+        } else {
+            throw new PaycomException(
+                $params['request_id'],
+                'Parameter to find a transaction is not specified.',
+                PaycomException::ERROR_INTERNAL_SYSTEM
+            );
         }
-
-        // todo: Implement searching transactions by given parameters and return list of transactions
 
         // if SQL operation succeeded, then try to populate instance properties with values
         if ($is_success) {
 
-            // fetch one row
-            $row = $db_stmt->fetch();
+            $row = $sth->fetch();
 
-            // if there is row available, then populate properties with values
             if ($row) {
 
-                $this->id = $row['id'];
+                $this->id                    = $row['id'];
                 $this->paycom_transaction_id = $row['paycom_transaction_id'];
-                $this->paycom_time = 1 * $row['paycom_time'];
-                $this->paycom_time_datetime = $row['paycom_time_datetime'];
-                $this->create_time = $row['create_time'];
-                $this->perform_time = $row['perform_time'];
-                $this->cancel_time = $row['cancel_time'];
-                $this->state = 1 * $row['state'];
-                $this->reason = $row['reason'] ? 1 * $row['reason'] : null;
-                $this->amount = 1 * $row['amount'];
-                $this->order_id = 1 * $row['order_id'];
+                $this->paycom_time           = 1 * $row['paycom_time'];
+                $this->paycom_time_datetime  = $row['paycom_time_datetime'];
+                $this->create_time           = $row['create_time'];
+                $this->perform_time          = $row['perform_time'];
+                $this->cancel_time           = $row['cancel_time'];
+                $this->state                 = 1 * $row['state'];
+                $this->reason                = $row['reason'] ? 1 * $row['reason'] : null;
+                $this->amount                = 1 * $row['amount'];
+                $this->receivers             = $row['receivers'] ? json_decode($row['receivers'], true) : null;
+                $this->order_id              = 1 * $row['order_id'];
 
-                // assume, receivers column contains list of receivers in JSON format as string
-                $this->receivers = $row['receivers'] ? json_decode($row['receivers'], true) : null;
-
-                // return populated instance
                 return $this;
             }
 
@@ -204,35 +279,50 @@ class Transaction
     public function report($from_date, $to_date)
     {
         $from_date = Format::timestamp2datetime($from_date);
-        $to_date = Format::timestamp2datetime($to_date);
+        $to_date   = Format::timestamp2datetime($to_date);
 
         // container to hold rows/document from data store
         $rows = [];
 
         // todo: Retrieve transactions for the specified period from data store
 
+        // Example implementation
+
+        $db = self::db();
+
+        $sql = "SELECT * FROM transactions 
+                WHERE paycom_time_datetime BETWEEN :from_date AND :to_date
+                ORDER BY paycom_time_datetime";
+
+        $sth        = $db->prepare($sql);
+        $is_success = $sth->execute([':from_date' => $from_date, ':to_date' => $to_date]);
+        if ($is_success) {
+            $rows = $sth->fetchAll();
+        }
+
         // assume, here we have $rows variable that is populated with transactions from data store
         // normalize data for response
         $result = [];
         foreach ($rows as $row) {
             $result[] = [
-                'id' => $row['paycom_transaction_id'], // paycom transaction id
-                'time' => 1 * $row['paycom_time'], // paycom transaction timestamp as is
-                'amount' => 1 * $row['amount'],
-                'account' => [
-                    'order_id' => $row['order_id'], // account parameters to identify client/order/service
+                'id'           => $row['paycom_transaction_id'], // paycom transaction id
+                'time'         => 1 * $row['paycom_time'], // paycom transaction timestamp as is
+                'amount'       => 1 * $row['amount'],
+                'account'      => [
+                    'order_id' => 1 * $row['order_id'], // account parameters to identify client/order/service
                     // ... additional parameters may be listed here, which are belongs to the account
                 ],
-                'create_time' => Format::datetime2timestamp($row['create_time']),
+                'create_time'  => Format::datetime2timestamp($row['create_time']),
                 'perform_time' => Format::datetime2timestamp($row['perform_time']),
-                'cancel_time' => Format::datetime2timestamp($row['cancel_time']),
-                'transaction' => $row['id'],
-                'state' => 1 * $row['state'],
-                'reason' => isset($row['reason']) ? 1 * $row['reason'] : null,
-                'receivers' => $row['receivers']
+                'cancel_time'  => Format::datetime2timestamp($row['cancel_time']),
+                'transaction'  => 1 * $row['id'],
+                'state'        => 1 * $row['state'],
+                'reason'       => isset($row['reason']) ? 1 * $row['reason'] : null,
+                'receivers'    => isset($row['receivers']) ? json_decode($row['receivers'], true) : null,
             ];
         }
 
         return $result;
+
     }
 }

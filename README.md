@@ -8,6 +8,7 @@ One **MUST** implement all the `todo:` entries found in the source files accordi
 - [Prerequisites](#prerequisites)
 - [Installation](#installation)
 - [Transactions table](#transactions-table)
+- [Orders table](#orders-table)
 - [Additional resources](#additional-resources)
 - [Endpoint](#endpoint)
 - [File Structure](#file-structure)
@@ -85,18 +86,18 @@ This template requires `transactions` table at least with the following structur
 
 ```sql
 CREATE TABLE `transactions` (
-  `id` INT(11) NOT NULL AUTO_INCREMENT,
-  `paycom_transaction_id` VARCHAR(25) NOT NULL COLLATE 'utf8_unicode_ci',
-  `paycom_time` VARCHAR(13) NOT NULL COLLATE 'utf8_unicode_ci',
-  `paycom_time_datetime` DATETIME NOT NULL,
-  `create_time` DATETIME NOT NULL,
-  `perform_time` DATETIME NULL DEFAULT NULL,
-  `cancel_time` DATETIME NULL DEFAULT NULL,
-  `amount` INT(11) NOT NULL,
-  `state` TINYINT(2) NOT NULL,
-  `reason` TINYINT(2) NULL DEFAULT NULL,
-  `receivers` VARCHAR(500) NULL DEFAULT NULL COMMENT 'JSON array of receivers' COLLATE 'utf8_unicode_ci',
-  `order_id` INT(11) NOT NULL,
+  `id`                    INT(11)      NOT NULL AUTO_INCREMENT,
+  `paycom_transaction_id` VARCHAR(25)  NOT NULL COLLATE 'utf8_unicode_ci',
+  `paycom_time`           VARCHAR(13)  NOT NULL COLLATE 'utf8_unicode_ci',
+  `paycom_time_datetime`  DATETIME     NOT NULL,
+  `create_time`           DATETIME     NOT NULL,
+  `perform_time`          DATETIME     NULL     DEFAULT NULL,
+  `cancel_time`           DATETIME     NULL     DEFAULT NULL,
+  `amount`                INT(11)      NOT NULL,
+  `state`                 TINYINT(2)   NOT NULL,
+  `reason`                TINYINT(2)   NULL     DEFAULT NULL,
+  `receivers`             VARCHAR(500) NULL     DEFAULT NULL COMMENT 'JSON array of receivers' COLLATE 'utf8_unicode_ci',
+  `order_id`              INT(11)      NOT NULL,
 
   PRIMARY KEY (`id`)
 )
@@ -104,6 +105,25 @@ CREATE TABLE `transactions` (
 COLLATE='utf8_unicode_ci'
 ENGINE=InnoDB
 AUTO_INCREMENT=1;
+```
+
+Additional fields can be added into this table or above data types and sizes can be adjusted.
+
+### Orders table
+
+You also need a table to store info about orders.
+Here is a sample table definition:
+
+```sql
+CREATE TABLE orders
+(
+  id          INT AUTO_INCREMENT PRIMARY KEY,
+  product_ids VARCHAR(255)   NOT NULL,
+  amount      DECIMAL(18, 2) NOT NULL,
+  state       TINYINT(1)     NOT NULL,
+  user_id     INT            NOT NULL,
+  phone       VARCHAR(15)    NOT NULL
+) ENGINE = InnoDB;
 ```
 
 Additional fields can be added into this table or above data types and sizes can be adjusted.
