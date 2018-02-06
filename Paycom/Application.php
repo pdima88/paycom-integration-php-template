@@ -120,6 +120,19 @@ class Application
         // validate parameters
         $order->validate($this->request->params);
 
+        // todo: Check, is there any other transaction for this order/service
+        $transaction = new Transaction();
+        $found       = $transaction->find(['account' => $this->request->params['account']]);
+        if ($found) {
+            if (($found->state == Transaction::STATE_CREATED || $found->state == Transaction::STATE_COMPLETED)
+                && $found->paycom_transaction_id !== $this->request->params['id']) {
+                $this->response->error(
+                    PaycomException::ERROR_INVALID_ACCOUNT,
+                    'There is other active/completed transaction for this order.'
+                );
+            }
+        }
+
         // todo: Find transaction by id
         $transaction = new Transaction();
         $found       = $transaction->find($this->request->params);
