@@ -108,7 +108,21 @@ class Order extends Database
         // todo: Check is order available
 
         // assume, after find() $this will be populated with Order data
-        $this->find($params['account']);
+        $order = $this->find($params['account']);
+
+        // Check, is order found by specified order_id
+        if (!$order || !$order->id) {
+            throw new PaycomException(
+                $this->request_id,
+                PaycomException::message(
+                    'Неверный код заказа.',
+                    'Harid kodida xatolik.',
+                    'Incorrect order code.'
+                ),
+                PaycomException::ERROR_INVALID_ACCOUNT,
+                'order_id'
+            );
+        }
 
         // validate amount
         // convert $this->amount to coins
