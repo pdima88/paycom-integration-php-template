@@ -6,9 +6,7 @@ class Database
 {
     public $config;
 
-    protected static $db;
-
-    public function __construct(array $config = null)
+    public function __construct(array $config)
     {
         $this->config = $config;
     }
@@ -18,33 +16,15 @@ class Database
         $db = null;
 
         // connect to the database
-        $db_options = [
-            \PDO::ATTR_DEFAULT_FETCH_MODE => \PDO::FETCH_ASSOC, // fetch rows as associative array
-            \PDO::ATTR_PERSISTENT         => true // use existing connection if exists
-        ];
+        $db_options = [\PDO::ATTR_DEFAULT_FETCH_MODE => \PDO::FETCH_ASSOC];
 
         $db = new \PDO(
-            'mysql:dbname=' . $this->config['db']['database'] . ';host=' . $this->config['db']['host'] . ';charset=utf8',
+            'mysql:dbname=' . $this->config['db']['database'] . ';host='.$this->config['db']['host'].';charset=utf8',
             $this->config['db']['username'],
             $this->config['db']['password'],
             $db_options
         );
 
         return $db;
-    }
-
-    /**
-     * Connects to the database
-     * @return null|\PDO connection
-     */
-    public static function db()
-    {
-        if (!self::$db) {
-            $config   = require_once CONFIG_FILE;
-            $instance = new self($config);
-            self::$db = $instance->new_connection();
-        }
-
-        return self::$db;
     }
 }

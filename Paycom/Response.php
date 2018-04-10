@@ -1,5 +1,4 @@
 <?php
-
 namespace Paycom;
 
 class Response
@@ -23,9 +22,9 @@ class Response
         header('Content-Type: application/json; charset=UTF-8');
 
         $response['jsonrpc'] = '2.0';
-        $response['id']      = $this->request->id;
-        $response['result']  = $result;
-        $response['error']   = $error;
+        $response['id'] = $this->request->id;
+        $response['result'] = $result;
+        $response['error'] = $error;
 
         echo json_encode($response);
     }

@@ -1,5 +1,5 @@
 {
-  "name": "paycom/integration-template",
+  "name": "pdima88/paycom-integration-php",
   "description": "Set of classes to easy integration with Paycom (Payme) payment system",
   "type": "library",
   "keywords": [
@@ -18,6 +18,7 @@
     }
   },
   "require": {
-    "php": ">=5.4.0"
+    "php": ">=5.4.0",
+    "pdima88/pdlog": "dev-master"
   }
 }
