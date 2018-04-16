@@ -1,7 +1,7 @@
 <?php
 namespace Paycom;
 
-use pdima88\pdlog\Log;
+use s4y\Log;
 /**
  * Class Transaction
  *
