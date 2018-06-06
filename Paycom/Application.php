@@ -304,7 +304,7 @@ class Application
             case Transaction::STATE_CANCELLED_AFTER_COMPLETE:
                 $this->response->send([
                     'transaction' => $found->id,
-                    'cancel_time' => Format::datetime2timestamp($found->cancel_time),
+                    'cancel_time' => Format::timestamp2milliseconds(Format::datetime2timestamp($found->cancel_time)),
                     'state' => $found->state
                 ]);
                 break;
@@ -345,9 +345,10 @@ class Application
                     // send response
                     $this->response->send([
                         'transaction' => $found->id,
-                        'cancel_time' => Format::datetime2timestamp($found->cancel_time),
+                        'cancel_time' => Format::timestamp2milliseconds(Format::datetime2timestamp($found->cancel_time)),
                         'state' => $found->state
                     ]);
+//                    'cancel_time' => Format::datetime2timestamp($found->cancel_time),
                 } else {
                     // todo: If cancelling after performing transaction is not possible, then return error -31007
                     $this->response->error(
@@ -374,6 +375,7 @@ class Application
         // todo: Implement saving password into data store or file
         // example implementation, that saves new password into file specified in the configuration
 
+        //\S4Y_Log::log('payme', 0, 'New password: '.$this->request->params['password'],'change_password');
         $this->response->error(PaycomException::ERROR_INTERNAL_SYSTEM, 'Internal System Error.');
 
 
