@@ -150,14 +150,14 @@ class Application
         $order = new $orderClass($this->request->id, $this->request->params);
         $order->find($this->request->params['account']);
 
-        try {
+//        try {
             $order->validate($this->request->params);
-        } catch (\Exception $e) {
-            $this->response->error(
-                PaycomException::ERROR_INVALID_ACCOUNT,
-                $e->getMessage()
-            );
-        }
+//        } catch (\Exception $e) {
+//            $this->response->error(
+//                PaycomException::ERROR_INVALID_ACCOUNT,
+//                $e->getMessage()
+//            );
+//        }
 
         $transaction = new Transaction($this->db, $this->config['db']);
         $found = $transaction->find($this->request->params);
@@ -271,7 +271,7 @@ class Application
                 // todo: If transaction completed, just return it
                 $this->response->send([
                     'transaction' => $found->id,
-                    'perform_time' => Format::datetime2timestamp($found->perform_time),
+                    'perform_time' => Format::timestamp2milliseconds(Format::datetime2timestamp($found->perform_time)),
                     'state' => $found->state
                 ]);
                 break;
