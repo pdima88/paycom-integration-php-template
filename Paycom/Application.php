@@ -135,9 +135,9 @@ class Application
 
         // todo: Prepare and send found transaction
         $this->response->send([
-            'create_time' => Format::datetime2timestamp($found->create_time) * 1000,
-            'perform_time' => Format::datetime2timestamp($found->perform_time) * 1000,
-            'cancel_time' => Format::datetime2timestamp($found->cancel_time) * 1000,
+            'create_time' => Format::timestamp2milliseconds(Format::datetime2timestamp($found->create_time)),
+            'perform_time' => Format::timestamp2milliseconds(Format::datetime2timestamp($found->perform_time)),
+            'cancel_time' => Format::timestamp2milliseconds(Format::datetime2timestamp($found->cancel_time)),
             'transaction' => $found->id,
             'state' => $found->state,
             'reason' => isset($found->reason) ? 1 * $found->reason : null
@@ -176,7 +176,7 @@ class Application
                 );
             } else { // if transaction found and active, send it as response
                 $this->response->send([
-                    'create_time' => Format::datetime2timestamp($found->create_time),
+                    'create_time' => Format::timestamp2milliseconds(Format::datetime2timestamp($found->create_time)),
                     'transaction' => $found->id,
                     'state' => $found->state,
                     'receivers' => $found->receivers
@@ -324,7 +324,7 @@ class Application
                 // send response
                 $this->response->send([
                     'transaction' => $found->id,
-                    'cancel_time' => Format::datetime2timestamp($found->cancel_time),
+                    'cancel_time' => Format::timestamp2milliseconds(Format::datetime2timestamp($found->cancel_time)),
                     'state' => $found->state
                 ]);
                 break;
