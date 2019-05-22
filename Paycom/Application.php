@@ -7,6 +7,7 @@ class Application
     public $request;
     public $response;
 
+    /** @var \Zend_Db_Adapter_Mysqli */
     protected $db;
 
     /**
@@ -245,19 +246,32 @@ class Application
                         'Transaction is expired.'
                     );
                 } else { // perform active transaction
-                    // todo: Mark order/service as completed
-                    $params = ['order_id' => $found->order_id];
-                    $orderClass = $this->config['order_class'];
-                    $order = new $orderClass($this->request->id);
-                    $order->find($params);
-                    $order->transaction_id = $found->id;
-                    $order->setPaid();
+                    $this->db->beginTransaction();
+                    try {
+                        $params = ['order_id' => $found->order_id];
+                        $orderClass = $this->config['order_class'];
+                        $order = new $orderClass($this->request->id);
+                        $order->find($params);
+                        $order->transaction_id = $found->id;
+                        $order->setPaid();
 
-                    // todo: Mark transaction as completed
-                    $perform_time = Format::timestamp();
-                    $found->state = Transaction::STATE_COMPLETED;
-                    $found->perform_time = Format::timestamp2datetime($perform_time);
-                    $found->save();
+                        // todo: Mark transaction as completed
+                        $perform_time = Format::timestamp();
+                        $found->state = Transaction::STATE_COMPLETED;
+                        $found->perform_time = Format::timestamp2datetime($perform_time);
+                        $found->save();
+
+                        $this->db->commit();
+                    }
+                    catch (\Exception $e) {
+                        $this->db->rollBack();
+                        if ($e instanceof PaycomException) throw $e;
+                        throw new PaycomException(
+                            $this->request->id,
+                            $e->getMessage(),
+                            PaycomException::ERROR_INTERNAL_SYSTEM
+                        );
+                    }
 
                     $this->response->send([
                         'transaction' => $found->id,
@@ -311,15 +325,27 @@ class Application
 
             // cancel active transaction
             case Transaction::STATE_CREATED:
-                // cancel transaction with given reason
-                $found->cancel(1 * $this->request->params['reason']);
-                // after $found->cancel(), cancel_time and state properties populated with data
+                $this->db->beginTransaction();
+                try {
+                    // cancel transaction with given reason
+                    $found->cancel(1 * $this->request->params['reason']);
+                    // after $found->cancel(), cancel_time and state properties populated with data
 
-                // change order state to cancelled
-                $orderClass = $this->config['order_class'];
-                $order = new $orderClass($this->request->id);
-                $order->find(['order_id' => $found->order_id]);
-                $order->cancel();
+                    // change order state to cancelled
+                    $orderClass = $this->config['order_class'];
+                    $order = new $orderClass($this->request->id);
+                    $order->find(['order_id' => $found->order_id]);
+                    $order->cancel();
+                    $this->db->commit();
+                } catch (\Exception $e) {
+                    $this->db->rollBack();
+                    if ($e instanceof PaycomException) throw $e;
+                    throw new PaycomException(
+                        $this->request->id,
+                        $e->getMessage(),
+                        PaycomException::ERROR_INTERNAL_SYSTEM
+                    );
+                }
 
                 // send response
                 $this->response->send([
@@ -335,20 +361,33 @@ class Application
                 $order = new $orderClass($this->request->id);
                 $order->find(['order_id' => $found->order_id]);
                 $order->transaction_id = $found->id;
+
+                $this->db->beginTransaction();
                 if ($order->allowCancel()) {
-                    // cancel and change state to cancelled
-                    $found->cancel(1 * @$this->request->params['reason']);
-                    // after $found->cancel(), cancel_time and state properties populated with data
+                    try {
+                        // cancel and change state to cancelled
+                        $found->cancel(1 * @$this->request->params['reason']);
+                        // after $found->cancel(), cancel_time and state properties populated with data
 
-                    $order->cancel(true);
+                        $order->cancel(true);
 
+                        $this->db->commit();
+                    } catch (\Exception $e) {
+                        $this->db->rollBack();
+                        if ($e instanceof PaycomException) throw $e;
+                        throw new PaycomException(
+                            $this->request->id,
+                            $e->getMessage(),
+                            PaycomException::ERROR_INTERNAL_SYSTEM
+                        );
+                    }
                     // send response
                     $this->response->send([
                         'transaction' => $found->id,
                         'cancel_time' => Format::timestamp2milliseconds(Format::datetime2timestamp($found->cancel_time)),
                         'state' => $found->state
                     ]);
-//                    'cancel_time' => Format::datetime2timestamp($found->cancel_time),
+
                 } else {
                     // todo: If cancelling after performing transaction is not possible, then return error -31007
                     $this->response->error(
@@ -356,6 +395,7 @@ class Application
                         'Could not cancel transaction. Order is delivered/Service is completed.'
                     );
                 }
+
                 break;
         }
     }
