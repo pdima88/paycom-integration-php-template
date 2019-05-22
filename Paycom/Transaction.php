@@ -147,7 +147,6 @@ class Transaction
         $data = $this->toArray();
         unset($data['id']);
 
-        $this->db->beginTransaction();
         $res = $this->db->insert($this->getTableName(), $data);
         if ($res > 0) {
             $id = $this->db->lastInsertId($this->getTableName());
@@ -156,8 +155,7 @@ class Transaction
                 'Rows affected: '.$res;
             Log::log('transactions_payme', $id, $log, 'insert');
         } else throw new \Exception('No rows affected');
-
-        $this->db->commit();
+        
         return $id;
     }
 
@@ -176,11 +174,9 @@ class Transaction
 
         $log = 'Before update:' . PHP_EOL . json_encode($this->getTransactionById($this->id)) . PHP_EOL .
                'Update:' . PHP_EOL . json_encode($data) . PHP_EOL;
-        $this->db->beginTransaction();
         $res = $this->db->update($this->getTableName(), $data, ['id = ?' => $this->id]);
         $log .= 'Rows affected: ' . $res;
         Log::log('transactions_payme', $this->id, $log, 'update');
-        $this->db->commit();
     }
 
     /**
